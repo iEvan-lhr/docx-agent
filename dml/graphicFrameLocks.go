@@ -3,8 +3,8 @@ package dml
 import (
 	"encoding/xml"
 
-	"github.com/gomutex/godocx/common/constants"
-	"github.com/gomutex/godocx/dml/dmlst"
+	"github.com/iEvan-lhr/docx-agent/common/constants"
+	"github.com/iEvan-lhr/docx-agent/dml/dmlst"
 )
 
 type GraphicFrameLocks struct {

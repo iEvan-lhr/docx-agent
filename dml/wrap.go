@@ -4,8 +4,8 @@ import (
 	"encoding/xml"
 	"strconv"
 
-	"github.com/gomutex/godocx/dml/dmlct"
-	"github.com/gomutex/godocx/dml/dmlst"
+	"github.com/iEvan-lhr/docx-agent/dml/dmlct"
+	"github.com/iEvan-lhr/docx-agent/dml/dmlst"
 )
 
 type WrapNone struct {
