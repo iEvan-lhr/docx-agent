@@ -1,4 +1,4 @@
-module github.com/gomutex/godocx
+module github.com/iEvan-lhr/docx-agent
 
 go 1.18
 
