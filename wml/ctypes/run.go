@@ -2,9 +2,9 @@ package ctypes
 
 import (
 	"encoding/xml"
-	"github.com/gomutex/godocx/dml"
-	"github.com/gomutex/godocx/internal"
-	"github.com/gomutex/godocx/wml/stypes"
+	"github.com/iEvan-lhr/docx-agent/dml"
+	"github.com/iEvan-lhr/docx-agent/internal"
+	"github.com/iEvan-lhr/docx-agent/wml/stypes"
 )
 
 // A Run is part of a paragraph that has its own style. It could be

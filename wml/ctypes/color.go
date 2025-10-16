@@ -3,7 +3,7 @@ package ctypes
 import (
 	"encoding/xml"
 
-	"github.com/gomutex/godocx/wml/stypes"
+	"github.com/iEvan-lhr/docx-agent/wml/stypes"
 )
 
 // Color represents the color of a text or element.

@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gomutex/godocx/internal"
-	"github.com/gomutex/godocx/wml/stypes"
+	"github.com/iEvan-lhr/docx-agent/internal"
+	"github.com/iEvan-lhr/docx-agent/wml/stypes"
 )
 
 func TestFrameProp_MarshalXML(t *testing.T) {

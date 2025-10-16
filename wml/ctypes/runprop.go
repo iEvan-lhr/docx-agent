@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 
-	"github.com/gomutex/godocx/wml/stypes"
+	"github.com/iEvan-lhr/docx-agent/wml/stypes"
 )
 
 // RunProperty represents the properties of a run of text within a paragraph.

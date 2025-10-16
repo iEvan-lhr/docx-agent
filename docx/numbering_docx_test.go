@@ -3,14 +3,13 @@ package docx_test
 import (
 	"archive/zip"
 	"bytes"
+	godocx "github.com/iEvan-lhr/docx-agent"
 	"io"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
-
-	godocx "github.com/gomutex/godocx"
 )
 
 // TestGenerateTestDocxWithLists creates testdata/numbering.docx containing multiple

@@ -3,7 +3,7 @@ package dmlct
 import (
 	"encoding/xml"
 
-	"github.com/gomutex/godocx/dml/dmlst"
+	"github.com/iEvan-lhr/docx-agent/dml/dmlst"
 )
 
 // Optional Bool Element: Helper element that only has one attribute which is optional

@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"strconv"
 
-	"github.com/gomutex/godocx/wml/stypes"
+	"github.com/iEvan-lhr/docx-agent/wml/stypes"
 )
 
 type Border struct {
@@ -22,7 +22,7 @@ type Border struct {
 /*
 new cell border
 @param style: border style
-@param color: border color; @see github.com/gomutex/godocx/wml/color
+@param color: border color; @see github.com/iEvan-lhr/docx-agent/wml/color
 @param space: the gap between the border and the cell content
 @param size:  border size
 */

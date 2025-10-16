@@ -4,8 +4,8 @@ import (
 	"encoding/xml"
 	"fmt"
 
-	"github.com/gomutex/godocx/dml/dmlct"
-	"github.com/gomutex/godocx/dml/shapes"
+	"github.com/iEvan-lhr/docx-agent/dml/dmlct"
+	"github.com/iEvan-lhr/docx-agent/dml/shapes"
 )
 
 type BlipFill struct {

@@ -3,7 +3,7 @@ package docx
 import (
 	"encoding/xml"
 
-	"github.com/gomutex/godocx/wml/ctypes"
+	"github.com/iEvan-lhr/docx-agent/wml/ctypes"
 )
 
 // This element specifies the contents of the body of the document – the main document editing surface.
