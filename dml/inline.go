@@ -3,6 +3,7 @@ package dml
 import (
 	"encoding/xml"
 	"fmt"
+	"io"
 	"strconv"
 
 	"github.com/iEvan-lhr/docx-agent/common/constants"
@@ -110,4 +111,82 @@ func (i Inline) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	}
 
 	return e.EncodeToken(xml.EndElement{Name: start.Name})
+}
+
+func getUint64(val string) (uint64, error) {
+	if val == "" {
+		return 0, nil
+	}
+	return strconv.ParseUint(val, 10, 64)
+}
+
+func getUint(val string) (uint, error) {
+	u, err := getUint64(val)
+	return uint(u), err
+}
+
+func (i *Inline) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+	for _, attr := range start.Attr {
+		switch attr.Name.Local {
+		case "distT":
+			i.DistT, err = getUint(attr.Value)
+		case "distB":
+			i.DistB, err = getUint(attr.Value)
+		case "distL":
+			i.DistL, err = getUint(attr.Value)
+		case "distR":
+			i.DistR, err = getUint(attr.Value)
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+loop:
+	for {
+		currentToken, err := d.Token()
+		if err != nil {
+			if err == io.EOF {
+				break loop
+			}
+			return err
+		}
+
+		switch elem := currentToken.(type) {
+		case xml.StartElement:
+			switch elem.Name {
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "extent"}:
+				if err = d.DecodeElement(&i.Extent, &elem); err != nil {
+					return err
+				}
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "effectExtent"}:
+				i.EffectExtent = new(EffectExtent)
+				if err = d.DecodeElement(i.EffectExtent, &elem); err != nil {
+					return err
+				}
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "docPr"}:
+				if err = d.DecodeElement(&i.DocProp, &elem); err != nil {
+					return err
+				}
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "cNvGraphicFramePr"}:
+				i.CNvGraphicFramePr = new(NonVisualGraphicFrameProp)
+				if err = d.DecodeElement(i.CNvGraphicFramePr, &elem); err != nil {
+					return err
+				}
+			case xml.Name{Space: constants.DrawingMLMainNS, Local: "graphic"}:
+				if err = d.DecodeElement(&i.Graphic, &elem); err != nil {
+					return err
+				}
+			default:
+				if err = d.Skip(); err != nil {
+					return err
+				}
+			}
+		case xml.EndElement:
+			if elem.Name == start.Name {
+				break loop
+			}
+		}
+	}
+	return nil
 }

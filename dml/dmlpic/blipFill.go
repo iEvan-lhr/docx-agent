@@ -3,6 +3,8 @@ package dmlpic
 import (
 	"encoding/xml"
 	"fmt"
+	"github.com/iEvan-lhr/docx-agent/common/constants"
+	"io"
 
 	"github.com/iEvan-lhr/docx-agent/dml/dmlct"
 	"github.com/iEvan-lhr/docx-agent/dml/shapes"
@@ -16,7 +18,8 @@ type BlipFill struct {
 	SrcRect *dmlct.RelativeRect `xml:"srcRect,omitempty"`
 
 	// 3. Choice of a:EG_FillModeProperties
-	FillModeProps FillModeProps `xml:",any"`
+	Stretch *shapes.Stretch `xml:"stretch,omitempty"`
+	Tile    *shapes.Tile    `xml:"tile,omitempty"`
 
 	//Attributes:
 	DPI          *uint32 `xml:"dpi,attr,omitempty"`          //DPI Setting
@@ -64,27 +67,73 @@ func (b BlipFill) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	}
 
 	// 3. Choice: FillModProperties
-	if err = b.FillModeProps.MarshalXML(e, xml.StartElement{}); err != nil {
+	if err = b.Stretch.MarshalXML(e, xml.StartElement{Name: xml.Name{Local: "a:stretch"}}); err != nil {
 		return err
 	}
 
 	return e.EncodeToken(xml.EndElement{Name: start.Name})
 }
 
-type FillModeProps struct {
-	Stretch *shapes.Stretch `xml:"stretch,omitempty"`
-	Tile    *shapes.Tile    `xml:"tile,omitempty"`
-}
+//type FillModeProps struct {
+//	Stretch *shapes.Stretch `xml:"stretch,omitempty"`
+//	Tile    *shapes.Tile    `xml:"tile,omitempty"`
+//}
+//
+//func (f FillModeProps) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+//
+//	if f.Stretch != nil {
+//		return f.Stretch.MarshalXML(e, xml.StartElement{})
+//	}
+//
+//	if f.Tile != nil {
+//		return f.Tile.MarshalXML(e, xml.StartElement{})
+//	}
+//
+//	return nil
+//}
 
-func (f FillModeProps) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+// UnmarshalXML 实现了 xml.Unmarshaler 接口
+func (bf *BlipFill) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+loop:
+	for {
+		currentToken, err := d.Token()
+		if err != nil {
+			if err == io.EOF {
+				break loop
+			}
+			return err
+		}
 
-	if f.Stretch != nil {
-		return f.Stretch.MarshalXML(e, xml.StartElement{})
+		switch elem := currentToken.(type) {
+		case xml.StartElement:
+			switch elem.Name {
+			case xml.Name{Space: constants.DrawingMLMainNS, Local: "blip"}:
+				bf.Blip = new(Blip)
+				if err = d.DecodeElement(bf.Blip, &elem); err != nil {
+					return err
+				}
+			// 这就是“裁剪位置”
+			case xml.Name{Space: constants.DrawingMLMainNS, Local: "srcRect"}:
+				bf.SrcRect = new(dmlct.RelativeRect)
+				if err = d.DecodeElement(bf.SrcRect, &elem); err != nil {
+					return err
+				}
+			// 这里包含了“图片位置”
+			case xml.Name{Space: constants.DrawingMLMainNS, Local: "stretch"}:
+				bf.Stretch = new(shapes.Stretch)
+				if err = d.DecodeElement(bf.Stretch, &elem); err != nil {
+					return err
+				}
+			default:
+				if err = d.Skip(); err != nil {
+					return err
+				}
+			}
+		case xml.EndElement:
+			if elem.Name == start.Name {
+				break loop
+			}
+		}
 	}
-
-	if f.Tile != nil {
-		return f.Tile.MarshalXML(e, xml.StartElement{})
-	}
-
 	return nil
 }

@@ -2,6 +2,7 @@ package dml
 
 import (
 	"encoding/xml"
+	"io"
 
 	"github.com/iEvan-lhr/docx-agent/common/constants"
 	"github.com/iEvan-lhr/docx-agent/dml/dmlpic"
@@ -71,4 +72,76 @@ func (gd GraphicData) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	}
 
 	return e.EncodeToken(xml.EndElement{Name: start.Name})
+}
+
+func (g *Graphic) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+loop:
+	for {
+		currentToken, err := d.Token()
+		if err != nil {
+			if err == io.EOF {
+				break loop
+			}
+			return err
+		}
+
+		switch elem := currentToken.(type) {
+		case xml.StartElement:
+			switch elem.Name {
+			case xml.Name{Space: constants.DrawingMLMainNS, Local: "graphicData"}:
+				g.Data = new(GraphicData)
+				if err = d.DecodeElement(g.Data, &elem); err != nil {
+					return err
+				}
+			default:
+				if err = d.Skip(); err != nil {
+					return err
+				}
+			}
+		case xml.EndElement:
+			if elem.Name == start.Name {
+				break loop
+			}
+		}
+	}
+	return nil
+}
+
+func (gd *GraphicData) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	for _, attr := range start.Attr {
+		if attr.Name.Local == "uri" {
+			gd.URI = attr.Value
+		}
+	}
+
+loop:
+	for {
+		currentToken, err := d.Token()
+		if err != nil {
+			if err == io.EOF {
+				break loop
+			}
+			return err
+		}
+
+		switch elem := currentToken.(type) {
+		case xml.StartElement:
+			switch elem.Name {
+			case xml.Name{Space: constants.DrawingMLPicNS, Local: "pic"}:
+				gd.Pic = new(dmlpic.Pic)
+				if err = d.DecodeElement(gd.Pic, &elem); err != nil {
+					return err
+				}
+			default:
+				if err = d.Skip(); err != nil {
+					return err
+				}
+			}
+		case xml.EndElement:
+			if elem.Name == start.Name {
+				break loop
+			}
+		}
+	}
+	return nil
 }

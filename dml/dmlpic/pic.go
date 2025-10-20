@@ -35,10 +35,8 @@ func NewPic(rID string, imgCount uint, width units.Emu, height units.Emu) *Pic {
 
 	blipFill := NewBlipFill(rID)
 
-	blipFill.FillModeProps = FillModeProps{
-		Stretch: &shapes.Stretch{
-			FillRect: &dmlct.RelativeRect{},
-		},
+	blipFill.Stretch = &shapes.Stretch{
+		FillRect: &dmlct.RelativeRect{},
 	}
 
 	return &Pic{

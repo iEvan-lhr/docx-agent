@@ -3,6 +3,8 @@ package dml
 import (
 	"encoding/xml"
 	"fmt"
+	"github.com/iEvan-lhr/docx-agent/common/constants"
+	"io"
 	"strconv"
 
 	"github.com/iEvan-lhr/docx-agent/dml/dmlct"
@@ -178,6 +180,122 @@ func (a *Anchor) MarshalWrap(e *xml.Encoder) error {
 		return a.WrapThrough.MarshalXML(e, xml.StartElement{})
 	} else if a.WrapTopBtm != nil {
 		return a.WrapTopBtm.MarshalXML(e, xml.StartElement{})
+	}
+	return nil
+}
+
+func (a *Anchor) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+	for _, attr := range start.Attr {
+		switch attr.Name.Local {
+		case "simplePos":
+			var i int
+			i, err = getInt(attr.Value)
+			a.SimplePosAttr = &i
+		case "distT":
+			a.DistT, err = getUint(attr.Value)
+		case "distB":
+			a.DistB, err = getUint(attr.Value)
+		case "distL":
+			a.DistL, err = getUint(attr.Value)
+		case "distR":
+			a.DistR, err = getUint(attr.Value)
+		case "relativeHeight":
+			a.RelativeHeight, err = getInt(attr.Value)
+		case "layoutInCell":
+			a.LayoutInCell, err = getInt(attr.Value)
+		case "behindDoc":
+			a.BehindDoc, err = getInt(attr.Value)
+		case "locked":
+			a.Locked, err = getInt(attr.Value)
+		case "allowOverlap":
+			a.AllowOverlap, err = getInt(attr.Value)
+		case "hidden":
+			var i int
+			i, err = getInt(attr.Value)
+			a.Hidden = &i
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+loop:
+	for {
+		currentToken, err := d.Token()
+		if err != nil {
+			if err == io.EOF {
+				break loop
+			}
+			return err
+		}
+
+		switch elem := currentToken.(type) {
+		case xml.StartElement:
+			switch elem.Name {
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "simplePos"}:
+				if err = d.DecodeElement(&a.SimplePos, &elem); err != nil {
+					return err
+				}
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "positionH"}:
+				if err = d.DecodeElement(&a.PositionH, &elem); err != nil {
+					return err
+				}
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "positionV"}:
+				if err = d.DecodeElement(&a.PositionV, &elem); err != nil {
+					return err
+				}
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "extent"}:
+				if err = d.DecodeElement(&a.Extent, &elem); err != nil {
+					return err
+				}
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "effectExtent"}:
+				a.EffectExtent = new(EffectExtent)
+				if err = d.DecodeElement(a.EffectExtent, &elem); err != nil {
+					return err
+				}
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "wrapNone"}:
+				a.WrapNone = new(WrapNone)
+				if err = d.DecodeElement(a.WrapNone, &elem); err != nil {
+					return err
+				}
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "wrapSquare"}:
+				a.WrapSquare = new(WrapSquare)
+				if err = d.DecodeElement(a.WrapSquare, &elem); err != nil {
+					return err
+				}
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "wrapThrough"}:
+				a.WrapThrough = new(WrapThrough)
+				if err = d.DecodeElement(a.WrapThrough, &elem); err != nil {
+					return err
+				}
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "wrapTopAndBottom"}:
+				a.WrapTopBtm = new(WrapTopBtm)
+				if err = d.DecodeElement(a.WrapTopBtm, &elem); err != nil {
+					return err
+				}
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "docPr"}:
+				if err = d.DecodeElement(&a.DocProp, &elem); err != nil {
+					return err
+				}
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "cNvGraphicFramePr"}:
+				a.CNvGraphicFramePr = new(NonVisualGraphicFrameProp)
+				if err = d.DecodeElement(a.CNvGraphicFramePr, &elem); err != nil {
+					return err
+				}
+			case xml.Name{Space: constants.DrawingMLMainNS, Local: "graphic"}:
+				if err = d.DecodeElement(&a.Graphic, &elem); err != nil {
+					return err
+				}
+			default:
+				if err = d.Skip(); err != nil {
+					return err
+				}
+			}
+		case xml.EndElement:
+			if elem.Name == start.Name {
+				break loop
+			}
+		}
 	}
 	return nil
 }

@@ -2,6 +2,8 @@ package dml
 
 import (
 	"encoding/xml"
+	"github.com/iEvan-lhr/docx-agent/common/constants"
+	"io"
 	"strconv"
 
 	"github.com/iEvan-lhr/docx-agent/dml/dmlct"
@@ -243,4 +245,265 @@ func (w WrapTopBtm) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	}
 
 	return e.EncodeToken(xml.EndElement{Name: start.Name})
+}
+
+func (w *WrapNone) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	// 这是一个空元素, 跳过它
+	return d.Skip()
+}
+
+func (ws *WrapSquare) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+	for _, attr := range start.Attr {
+		switch attr.Name.Local {
+		case "wrapText":
+			ws.WrapText = dmlst.WrapText(attr.Value)
+		case "distT":
+			var u uint
+			u, err = getUint(attr.Value)
+			ws.DistT = &u
+		case "distB":
+			var u uint
+			u, err = getUint(attr.Value)
+			ws.DistB = &u
+		case "distL":
+			var u uint
+			u, err = getUint(attr.Value)
+			ws.DistL = &u
+		case "distR":
+			var u uint
+			u, err = getUint(attr.Value)
+			ws.DistR = &u
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+loop:
+	for {
+		currentToken, err := d.Token()
+		if err != nil {
+			if err == io.EOF {
+				break loop
+			}
+			return err
+		}
+
+		switch elem := currentToken.(type) {
+		case xml.StartElement:
+			switch elem.Name {
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "effectExtent"}:
+				ws.EffectExtent = new(EffectExtent)
+				if err = d.DecodeElement(ws.EffectExtent, &elem); err != nil {
+					return err
+				}
+			default:
+				if err = d.Skip(); err != nil {
+					return err
+				}
+			}
+		case xml.EndElement:
+			if elem.Name == start.Name {
+				break loop
+			}
+		}
+	}
+	return nil
+}
+
+func (wp *WrapPolygon) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+	for _, attr := range start.Attr {
+		if attr.Name.Local == "edited" {
+			var b bool
+			if attr.Value == "true" || attr.Value == "1" {
+				b = true
+			}
+			wp.Edited = &b
+		}
+	}
+
+loop:
+	for {
+		currentToken, err := d.Token()
+		if err != nil {
+			if err == io.EOF {
+				break loop
+			}
+			return err
+		}
+
+		switch elem := currentToken.(type) {
+		case xml.StartElement:
+			switch elem.Name {
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "start"}:
+				if err = d.DecodeElement(&wp.Start, &elem); err != nil {
+					return err
+				}
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "lineTo"}:
+				var pt dmlct.Point2D
+				if err = d.DecodeElement(&pt, &elem); err != nil {
+					return err
+				}
+				wp.LineTo = append(wp.LineTo, pt)
+			default:
+				if err = d.Skip(); err != nil {
+					return err
+				}
+			}
+		case xml.EndElement:
+			if elem.Name == start.Name {
+				break loop
+			}
+		}
+	}
+	return nil
+}
+
+func (w *WrapTight) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+	for _, attr := range start.Attr {
+		switch attr.Name.Local {
+		case "wrapText":
+			w.WrapText = dmlst.WrapText(attr.Value)
+		case "distL":
+			var u uint
+			u, err = getUint(attr.Value)
+			w.DistL = &u
+		case "distR":
+			var u uint
+			u, err = getUint(attr.Value)
+			w.DistR = &u
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+loop:
+	for {
+		currentToken, err := d.Token()
+		if err != nil {
+			if err == io.EOF {
+				break loop
+			}
+			return err
+		}
+
+		switch elem := currentToken.(type) {
+		case xml.StartElement:
+			switch elem.Name {
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "wrapPolygon"}:
+				if err = d.DecodeElement(&w.WrapPolygon, &elem); err != nil {
+					return err
+				}
+			default:
+				if err = d.Skip(); err != nil {
+					return err
+				}
+			}
+		case xml.EndElement:
+			if elem.Name == start.Name {
+				break loop
+			}
+		}
+	}
+	return nil
+}
+
+func (w *WrapThrough) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+	for _, attr := range start.Attr {
+		switch attr.Name.Local {
+		case "wrapText":
+			w.WrapText = dmlst.WrapText(attr.Value)
+		case "distL":
+			var u uint
+			u, err = getUint(attr.Value)
+			w.DistL = &u
+		case "distR":
+			var u uint
+			u, err = getUint(attr.Value)
+			w.DistR = &u
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+loop:
+	for {
+		currentToken, err := d.Token()
+		if err != nil {
+			if err == io.EOF {
+				break loop
+			}
+			return err
+		}
+
+		switch elem := currentToken.(type) {
+		case xml.StartElement:
+			switch elem.Name {
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "wrapPolygon"}:
+				if err = d.DecodeElement(&w.WrapPolygon, &elem); err != nil {
+					return err
+				}
+			default:
+				if err = d.Skip(); err != nil {
+					return err
+				}
+			}
+		case xml.EndElement:
+			if elem.Name == start.Name {
+				break loop
+			}
+		}
+	}
+	return nil
+}
+
+func (w *WrapTopBtm) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+	for _, attr := range start.Attr {
+		switch attr.Name.Local {
+		case "distT":
+			var u uint
+			u, err = getUint(attr.Value)
+			w.DistT = &u
+		case "distB":
+			var u uint
+			u, err = getUint(attr.Value)
+			w.DistB = &u
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+loop:
+	for {
+		currentToken, err := d.Token()
+		if err != nil {
+			if err == io.EOF {
+				break loop
+			}
+			return err
+		}
+
+		switch elem := currentToken.(type) {
+		case xml.StartElement:
+			switch elem.Name {
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "effectExtent"}:
+				w.EffectExtent = new(EffectExtent)
+				if err = d.DecodeElement(w.EffectExtent, &elem); err != nil {
+					return err
+				}
+			default:
+				if err = d.Skip(); err != nil {
+					return err
+				}
+			}
+		case xml.EndElement:
+			if elem.Name == start.Name {
+				break loop
+			}
+		}
+	}
+	return nil
 }

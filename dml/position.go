@@ -3,6 +3,9 @@ package dml
 import (
 	"encoding/xml"
 	"errors"
+	"github.com/iEvan-lhr/docx-agent/common/constants"
+	"io"
+	"strconv"
 
 	"github.com/iEvan-lhr/docx-agent/dml/dmlst"
 )
@@ -17,6 +20,89 @@ type PoistionV struct {
 	PosOffset    int            `xml:"posOffset"`
 }
 
+func getInt(val string) (int, error) {
+	if val == "" {
+		return 0, nil
+	}
+	i, err := strconv.ParseInt(val, 10, 64)
+	return int(i), err
+}
+
+func (p *PoistionH) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	for _, attr := range start.Attr {
+		if attr.Name.Local == "relativeFrom" {
+			p.RelativeFrom = dmlst.RelFromH(attr.Value)
+		}
+	}
+
+loop:
+	for {
+		currentToken, err := d.Token()
+		if err != nil {
+			if err == io.EOF {
+				break loop
+			}
+			return err
+		}
+
+		switch elem := currentToken.(type) {
+		case xml.StartElement:
+			switch elem.Name {
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "posOffset"}:
+				if err = d.DecodeElement(&p.PosOffset, &elem); err != nil {
+					return err
+				}
+			default:
+				if err = d.Skip(); err != nil {
+					return err
+				}
+			}
+		case xml.EndElement:
+			if elem.Name == start.Name {
+				break loop
+			}
+		}
+	}
+	return nil
+}
+
+func (p *PoistionV) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	for _, attr := range start.Attr {
+		if attr.Name.Local == "relativeFrom" {
+			p.RelativeFrom = dmlst.RelFromV(attr.Value)
+		}
+	}
+
+loop:
+	for {
+		currentToken, err := d.Token()
+		if err != nil {
+			if err == io.EOF {
+				break loop
+			}
+			return err
+		}
+
+		switch elem := currentToken.(type) {
+		case xml.StartElement:
+			switch elem.Name {
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "posOffset"}:
+				if err = d.DecodeElement(&p.PosOffset, &elem); err != nil {
+					return err
+				}
+			default:
+				if err = d.Skip(); err != nil {
+					return err
+				}
+			}
+		case xml.EndElement:
+			if elem.Name == start.Name {
+				break loop
+			}
+		}
+	}
+	return nil
+}
 func (p PoistionH) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 
 	if p.RelativeFrom == "" {
