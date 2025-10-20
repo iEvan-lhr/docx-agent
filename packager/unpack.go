@@ -108,6 +108,10 @@ func Unpack(content *[]byte) (*docx.RootDoc, error) {
 	wordDir := path.Dir(docPath)
 
 	rd.DocStyles = &ctypes.Styles{}
+
+	rd.Headers = make([]*ctypes.Header, 0)
+	rd.Footers = make([]*ctypes.Footer, 0)
+
 	rID := 0
 	for _, relation := range docRelations.Relationships {
 		rID += 1
@@ -127,6 +131,39 @@ func Unpack(content *[]byte) (*docx.RootDoc, error) {
 			}
 			delete(fileIndex, stylesPath)
 			rd.DocStyles = stylesObj
+		case constants.HeaderType:
+			hFileName := relation.Target
+			if hFileName == "" {
+				continue
+			}
+			headerPath := path.Join(wordDir, hFileName)
+			headerFile, ok := fileIndex[headerPath]
+			if !ok {
+				return nil, fmt.Errorf("header file not found: %s", headerPath)
+			}
+			headerObj, err := docx.LoadHeaderXml(headerPath, headerFile)
+			if err != nil {
+				return nil, err
+			}
+			delete(fileIndex, headerPath)
+			rd.Headers = append(rd.Headers, headerObj)
+
+		case constants.FooterType:
+			fFileName := relation.Target
+			if fFileName == "" {
+				continue
+			}
+			footerPath := path.Join(wordDir, fFileName)
+			footerFile, ok := fileIndex[footerPath]
+			if !ok {
+				return nil, fmt.Errorf("footer file not found: %s", footerPath)
+			}
+			footerObj, err := docx.LoadFooterXml(footerPath, footerFile)
+			if err != nil {
+				return nil, err
+			}
+			delete(fileIndex, footerPath)
+			rd.Footers = append(rd.Footers, footerObj)
 		}
 	}
 

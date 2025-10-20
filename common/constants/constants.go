@@ -10,6 +10,8 @@ const (
 	CORE_PROP_TYPE     = "http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties"
 	EXTENDED_PROP_TYPE = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties"
 	StylesType         = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles"
+	HeaderType         = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/header"
+	FooterType         = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer"
 )
 
 var (

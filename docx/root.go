@@ -18,9 +18,10 @@ type RootDoc struct {
 	Document    *Document         // Document is the main document structure.
 	DocStyles   *ctypes.Styles    // Document styles
 	Numbering   *NumberingManager // Numbering manager for list instances
-
-	rID        int // rId is used to generate unique relationship IDs.
-	ImageCount uint
+	Headers     []*ctypes.Header  // 存储所有解析后的页眉
+	Footers     []*ctypes.Footer  // 存储所有解析后的页脚
+	rID         int               // rId is used to generate unique relationship IDs.
+	ImageCount  uint
 }
 
 // NewRootDoc creates a new instance of the RootDoc structure.
@@ -63,6 +64,28 @@ func LoadStyles(fileName string, fileBytes []byte) (*ctypes.Styles, error) {
 
 	styles.RelativePath = fileName
 	return &styles, nil
+}
+
+// LoadHeaderXml 解析页眉文件
+func LoadHeaderXml(fileName string, fileBytes []byte) (*ctypes.Header, error) {
+	header := ctypes.Header{}
+	err := xml.Unmarshal(fileBytes, &header)
+	if err != nil {
+		return nil, err
+	}
+	// 你可能想在这里添加: header.RelativePath = fileName
+	return &header, nil
+}
+
+// LoadFooterXml 解析页脚文件
+func LoadFooterXml(fileName string, fileBytes []byte) (*ctypes.Footer, error) {
+	footer := ctypes.Footer{}
+	err := xml.Unmarshal(fileBytes, &footer)
+	if err != nil {
+		return nil, err
+	}
+	// 你可能想在这里添加: footer.RelativePath = fileName
+	return &footer, nil
 }
 
 // NewListInstance creates a new numbering instance for the given abstract numbering ID.
