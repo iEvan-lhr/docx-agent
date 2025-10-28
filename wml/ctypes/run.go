@@ -21,6 +21,12 @@ type Run struct {
 
 	// 2. Choice - Run Inner content
 	Children []RunChild
+
+	AlternateContent *AlternateContent
+
+	FldChar *FldChar
+
+	InStrText *InStrText
 }
 
 type RunChild struct {
@@ -111,7 +117,8 @@ type RunChild struct {
 	PTab *PTab `xml:"ptab,omitempty"`
 
 	//Position of Last Calculated Page Break
-	LastRenPgBrk *Empty `xml:"lastRenderedPageBreak,omitempty"`
+	LastRenPgBrk     *Empty            `xml:"lastRenderedPageBreak,omitempty"`
+	AlternateContent *AlternateContent `xml:"mc\\AlternateContent,omitempty"`
 }
 
 func NewRun() *Run {
@@ -144,6 +151,24 @@ func (r Run) MarshalXML(e *xml.Encoder, start xml.StartElement) (err error) {
 		}
 	}
 
+	if r.AlternateContent != nil {
+		propsElement := xml.StartElement{Name: xml.Name{Local: "mc:AlternateContent"}}
+		if err = e.EncodeElement(r.AlternateContent, propsElement); err != nil {
+			return err
+		}
+	}
+	if r.FldChar != nil {
+		propsElement := xml.StartElement{Name: xml.Name{Local: "w:fldChar"}}
+		if err = e.EncodeElement(r.FldChar, propsElement); err != nil {
+			return err
+		}
+	}
+	if r.InStrText != nil {
+		propsElement := xml.StartElement{Name: xml.Name{Local: "w:instrText"}}
+		if err = e.EncodeElement(r.InStrText, propsElement); err != nil {
+			return err
+		}
+	}
 	// 2. Remaining Child elemens
 	if err = r.MarshalChild(e); err != nil {
 		return err
@@ -187,6 +212,21 @@ loop:
 				if err = d.DecodeElement(r.Property, &elem); err != nil {
 					return err
 				}
+			case "AlternateContent": // <mc:AlternateContent>
+				r.AlternateContent = &AlternateContent{}
+				if err = d.DecodeElement(r.AlternateContent, &elem); err != nil {
+					return err
+				}
+			case "fldChar":
+				r.FldChar = &FldChar{}
+				if err = d.DecodeElement(r.FldChar, &elem); err != nil {
+					return err
+				}
+			case "instrText":
+				r.InStrText = &InStrText{}
+				if err = d.DecodeElement(r.InStrText, &elem); err != nil {
+					return err
+				}
 			case "tab":
 				tabElem := &Empty{}
 				if err = d.DecodeElement(tabElem, &elem); err != nil {
@@ -223,6 +263,29 @@ loop:
 				r.Children = append(r.Children, RunChild{
 					Pict: pictElem,
 				})
+			//case "AlternateContent": // <mc:AlternateContent>
+			//	ac := &AlternateContent{}
+			//	if err = d.DecodeElement(ac, &elem); err != nil {
+			//		return err
+			//	}
+			//var ac AlternateContent
+			//if err = d.DecodeElement(&ac, &elem); err != nil {
+			//	return err
+			//}
+			//// 扁平化选择：优先 Choice.drawing -> Choice.pict -> Fallback.drawing -> Fallback.pict
+			//switch {
+			//case ac.Choice != nil && ac.Choice.Drawing != nil:
+			//	r.Children = append(r.Children, RunChild{Drawing: ac.Choice.Drawing})
+			//case ac.Choice != nil && ac.Choice.Pict != nil:
+			//	r.Children = append(r.Children, RunChild{Pict: ac.Choice.Pict})
+			//case ac.Fallback != nil && ac.Fallback.Drawing != nil:
+			//	r.Children = append(r.Children, RunChild{Drawing: ac.Fallback.Drawing})
+			//case ac.Fallback != nil && ac.Fallback.Pict != nil:
+			//	r.Children = append(r.Children, RunChild{Pict: ac.Fallback.Pict})
+			//default:
+			//	// 如果想保留原样，可以扩展 RunChild 增加 AltContent 字段保存 ac
+			//	// r.Children = append(r.Children, RunChild{AlternateContent: &ac})
+			//}
 			default:
 				if err = d.Skip(); err != nil {
 					return err

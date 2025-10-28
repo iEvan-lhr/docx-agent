@@ -96,6 +96,10 @@ func Unpack(content *[]byte) (*docx.RootDoc, error) {
 	delete(fileIndex, docPath)
 	rd.Document = docObj
 
+	// 在加载 document 后，初始化 Headers 和 Footers map
+	rd.Document.Headers = make(map[string]*docx.Header)
+	rd.Document.Footers = make(map[string]*docx.Footer)
+
 	// Load Relationship details
 	docRelFile := fileIndex[*docRelURI]
 	docRelations, err := LoadRelationShips(*docRelURI, docRelFile)
@@ -127,6 +131,41 @@ func Unpack(content *[]byte) (*docx.RootDoc, error) {
 			}
 			delete(fileIndex, stylesPath)
 			rd.DocStyles = stylesObj
+		case constants.HeaderType:
+			// 处理 Header
+			headerFileName := relation.Target
+			if headerFileName == "" {
+				continue
+			}
+			headerPath := path.Join(wordDir, headerFileName)
+
+			// 加载 Header
+			headerFile := fileIndex[headerPath]
+			headerObj, err := docx.LoadHeaderXml(rd, headerPath, headerFile)
+			if err != nil {
+				return nil, fmt.Errorf("failed to load header %s: %v", headerPath, err)
+			}
+			headerObj.ID = relation.ID
+			rd.Document.Headers[relation.ID] = headerObj
+			delete(fileIndex, headerPath)
+
+		case constants.FooterType:
+			// 处理 Footer
+			footerFileName := relation.Target
+			if footerFileName == "" {
+				continue
+			}
+			footerPath := path.Join(wordDir, footerFileName)
+
+			// 加载 Footer
+			footerFile := fileIndex[footerPath]
+			footerObj, err := docx.LoadFooterXml(rd, footerPath, footerFile)
+			if err != nil {
+				return nil, fmt.Errorf("failed to load footer %s: %v", footerPath, err)
+			}
+			footerObj.ID = relation.ID
+			rd.Document.Footers[relation.ID] = footerObj
+			delete(fileIndex, footerPath)
 		}
 	}
 

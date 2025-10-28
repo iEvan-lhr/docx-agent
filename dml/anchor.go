@@ -4,6 +4,8 @@ import (
 	"encoding/xml"
 	"fmt"
 	"github.com/iEvan-lhr/docx-agent/common/constants"
+	"github.com/iEvan-lhr/docx-agent/internal"
+	"github.com/iEvan-lhr/docx-agent/wml/stypes"
 	"io"
 	"strconv"
 
@@ -47,6 +49,11 @@ type Anchor struct {
 
 	Hidden *int `xml:"hidden,attr,omitempty"`
 
+	// wp14:anchorId – Unique identifier for the anchor (Office 2010+)
+	AnchorId *stypes.LongHexNum `xml:"wp14:anchorId,attr,omitempty"`
+
+	// wp14:editId – Edit session identifier (Office 2010+)
+	EditId *stypes.LongHexNum `xml:"wp14:editId,attr,omitempty"`
 	// Child elements:
 	// 1. Simple Positioning Coordinates
 	SimplePos dmlct.Point2D `xml:"simplePos"`
@@ -64,6 +71,7 @@ type Anchor struct {
 	EffectExtent *EffectExtent `xml:"effectExtent,omitempty"`
 
 	// 6. Wrapping
+	WrapTight *WrapTight `xml:"wrapTight,omitempty"`
 	// 6.1 .wrapNone
 	WrapNone *WrapNone `xml:"wrapNone,omitempty"`
 
@@ -99,6 +107,8 @@ func (a Anchor) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "distB"}, Value: strconv.FormatUint(uint64(a.DistB), 10)})
 	start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "distL"}, Value: strconv.FormatUint(uint64(a.DistL), 10)})
 	start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "distR"}, Value: strconv.FormatUint(uint64(a.DistR), 10)})
+	start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "wp14:anchorId"}, Value: string(*a.AnchorId)})
+	start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "wp14:editId"}, Value: string(*a.EditId)})
 
 	if a.SimplePosAttr != nil {
 		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "simplePos"}, Value: strconv.Itoa(*a.SimplePosAttr)})
@@ -145,7 +155,10 @@ func (a Anchor) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	if err := a.EffectExtent.MarshalXML(e, xml.StartElement{}); err != nil {
 		return fmt.Errorf("EffectExtent: %v", err)
 	}
-
+	// 6. New:WrapTight
+	//if err := a.WrapTight.MarshalXML(e, xml.StartElement{}); err != nil {
+	//	return fmt.Errorf("WrapTight: %v", err)
+	//}
 	// 6. Wrap Choice
 	if err := a.MarshalWrap(e); err != nil {
 		return err
@@ -180,6 +193,11 @@ func (a *Anchor) MarshalWrap(e *xml.Encoder) error {
 		return a.WrapThrough.MarshalXML(e, xml.StartElement{})
 	} else if a.WrapTopBtm != nil {
 		return a.WrapTopBtm.MarshalXML(e, xml.StartElement{})
+	} else if a.WrapTight != nil { // <--- VVVV 添加这个 else if VVVV
+		// 确保使用正确的标签名
+		return a.WrapTight.MarshalXML(e, xml.StartElement{
+			Name: xml.Name{Local: "wrapTight"},
+		})
 	}
 	return nil
 }
@@ -207,6 +225,10 @@ func (a *Anchor) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error
 			a.BehindDoc, err = getInt(attr.Value)
 		case "locked":
 			a.Locked, err = getInt(attr.Value)
+		case "anchorId":
+			a.AnchorId = internal.ToPtr(stypes.LongHexNum(attr.Value))
+		case "editId":
+			a.EditId = internal.ToPtr(stypes.LongHexNum(attr.Value))
 		case "allowOverlap":
 			a.AllowOverlap, err = getInt(attr.Value)
 		case "hidden":
@@ -256,6 +278,11 @@ loop:
 			case xml.Name{Space: constants.WMLDrawingNS, Local: "wrapNone"}:
 				a.WrapNone = new(WrapNone)
 				if err = d.DecodeElement(a.WrapNone, &elem); err != nil {
+					return err
+				}
+			case xml.Name{Space: constants.WMLDrawingNS, Local: "wrapTight"}:
+				a.WrapTight = new(WrapTight)
+				if err = d.DecodeElement(a.WrapTight, &elem); err != nil {
 					return err
 				}
 			case xml.Name{Space: constants.WMLDrawingNS, Local: "wrapSquare"}:

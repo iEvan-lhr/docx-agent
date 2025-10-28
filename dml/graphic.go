@@ -21,8 +21,9 @@ func DefaultGraphic() *Graphic {
 }
 
 type GraphicData struct {
-	URI string      `xml:"uri,attr,omitempty"`
-	Pic *dmlpic.Pic `xml:"pic,omitempty"`
+	URI      string      `xml:"uri,attr,omitempty"`
+	WPGGroup *WPGGroup   `xml:"wgp,omitempty"`
+	Pic      *dmlpic.Pic `xml:"pic,omitempty"`
 }
 
 func NewPicGraphic(pic *dmlpic.Pic) *Graphic {
@@ -67,6 +68,11 @@ func (gd GraphicData) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 
 	if gd.Pic != nil {
 		if err := e.EncodeElement(gd.Pic, xml.StartElement{Name: xml.Name{Local: "pic:pic"}}); err != nil {
+			return err
+		}
+	}
+	if gd.WPGGroup != nil {
+		if err := e.EncodeElement(gd.WPGGroup, xml.StartElement{Name: xml.Name{Local: "wpg:wgp"}}); err != nil {
 			return err
 		}
 	}
@@ -130,6 +136,11 @@ loop:
 			case xml.Name{Space: constants.DrawingMLPicNS, Local: "pic"}:
 				gd.Pic = new(dmlpic.Pic)
 				if err = d.DecodeElement(gd.Pic, &elem); err != nil {
+					return err
+				}
+			case xml.Name{Space: constants.WPGNamespace, Local: "wgp"}:
+				gd.WPGGroup = new(WPGGroup)
+				if err = d.DecodeElement(gd.WPGGroup, &elem); err != nil {
 					return err
 				}
 			default:

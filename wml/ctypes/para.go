@@ -16,7 +16,8 @@ type Paragraph struct {
 	RsidDel      *stypes.LongHexNum // Revision Identifier for Paragraph Deletion
 	RsidP        *stypes.LongHexNum // Revision Identifier for Paragraph Properties
 	RsidRDefault *stypes.LongHexNum // Default Revision Identifier for Runs
-
+	ParaID       *stypes.LongHexNum //
+	TextId       *stypes.LongHexNum //
 	// 1. Paragraph Properties
 	Property *ParagraphProp
 
@@ -42,7 +43,12 @@ func (p Paragraph) MarshalXML(e *xml.Encoder, start xml.StartElement) (err error
 	if p.RsidRPr != nil {
 		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:rsidRPr"}, Value: string(*p.RsidRPr)})
 	}
-
+	if p.ParaID != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w14:paraId"}, Value: string(*p.ParaID)})
+	}
+	if p.TextId != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w14:textId"}, Value: string(*p.TextId)})
+	}
 	if p.RsidR != nil {
 		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:rsidR"}, Value: string(*p.RsidR)})
 	}
@@ -104,6 +110,10 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err er
 			p.RsidP = internal.ToPtr(stypes.LongHexNum(attr.Value))
 		case "rsidRDefault":
 			p.RsidRDefault = internal.ToPtr(stypes.LongHexNum(attr.Value))
+		case "paraId":
+			p.ParaID = internal.ToPtr(stypes.LongHexNum(attr.Value))
+		case "textId":
+			p.TextId = internal.ToPtr(stypes.LongHexNum(attr.Value))
 		}
 	}
 

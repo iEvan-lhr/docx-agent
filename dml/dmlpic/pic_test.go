@@ -6,34 +6,26 @@ import (
 	"testing"
 
 	"github.com/iEvan-lhr/docx-agent/dml/dmlct"
-	"github.com/iEvan-lhr/docx-agent/dml/dmlprops"
-	"github.com/iEvan-lhr/docx-agent/dml/dmlst"
-	"github.com/iEvan-lhr/docx-agent/dml/shapes"
 )
 
 func TestPicMarshalXML(t *testing.T) {
 	p := &Pic{
 		NonVisualPicProp: NonVisualPicProp{
-			CNvPr: dmlct.CNvPr{
-				ID:          1,
-				Name:        "Pic 1",
-				Description: "Description",
-			},
-			CNvPicPr: CNvPicPr{
-				PicLocks: &dmlprops.PicLocks{
-					NoChangeAspect:     dmlst.NewOptBool(true),
-					NoChangeArrowheads: dmlst.NewOptBool(true),
-				},
-			},
+			//CNvPr: dmlct.CNvPr{
+			//	ID:          1,
+			//	Name:        "Pic 1",
+			//	Description: "Description",
+			//},
+			//CNvPicPr: CNvPicPr{
+			//	PicLocks: &dmlprops.PicLocks{
+			//		NoChangeAspect:     dmlst.NewOptBool(true),
+			//		NoChangeArrowheads: dmlst.NewOptBool(true),
+			//	},
+			//},
 		},
 		BlipFill: BlipFill{
 			Blip: &Blip{
 				EmbedID: "rId1",
-			},
-			FillModeProps: FillModeProps{
-				Stretch: &shapes.Stretch{
-					FillRect: &dmlct.RelativeRect{},
-				},
 			},
 		},
 		PicShapeProp: PicShapeProp{

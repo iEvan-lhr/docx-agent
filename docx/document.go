@@ -32,6 +32,10 @@ type Document struct {
 	Background *Background
 	Body       *Body
 
+	// Headers and Footers
+	Headers map[string]*Header // key is relationship ID
+	Footers map[string]*Footer // key is relationship ID
+
 	// Non elements - helper fields
 	DocRels      Relationships // DocRels represents relationships specific to the document.
 	RID          int
