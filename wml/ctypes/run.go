@@ -27,6 +27,8 @@ type Run struct {
 	FldChar *FldChar
 
 	InStrText *InStrText
+
+	BookmarkStart *BookmarkStart
 }
 
 type RunChild struct {
@@ -169,6 +171,12 @@ func (r Run) MarshalXML(e *xml.Encoder, start xml.StartElement) (err error) {
 			return err
 		}
 	}
+	if r.BookmarkStart != nil {
+		propsElement := xml.StartElement{Name: xml.Name{Local: "w:bookmarkStart"}}
+		if err = e.EncodeElement(r.BookmarkStart, propsElement); err != nil {
+			return err
+		}
+	}
 	// 2. Remaining Child elemens
 	if err = r.MarshalChild(e); err != nil {
 		return err
@@ -220,6 +228,11 @@ loop:
 			case "fldChar":
 				r.FldChar = &FldChar{}
 				if err = d.DecodeElement(r.FldChar, &elem); err != nil {
+					return err
+				}
+			case "bookmarkStart":
+				r.BookmarkStart = &BookmarkStart{}
+				if err = d.DecodeElement(r.BookmarkStart, &elem); err != nil {
 					return err
 				}
 			case "instrText":
