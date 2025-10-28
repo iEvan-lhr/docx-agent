@@ -107,8 +107,12 @@ func (a Anchor) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "distB"}, Value: strconv.FormatUint(uint64(a.DistB), 10)})
 	start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "distL"}, Value: strconv.FormatUint(uint64(a.DistL), 10)})
 	start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "distR"}, Value: strconv.FormatUint(uint64(a.DistR), 10)})
-	start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "wp14:anchorId"}, Value: string(*a.AnchorId)})
-	start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "wp14:editId"}, Value: string(*a.EditId)})
+	if a.AnchorId != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "wp14:anchorId"}, Value: string(*a.AnchorId)})
+	}
+	if a.EditId != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "wp14:editId"}, Value: string(*a.EditId)})
+	}
 
 	if a.SimplePosAttr != nil {
 		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "simplePos"}, Value: strconv.Itoa(*a.SimplePosAttr)})
