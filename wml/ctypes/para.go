@@ -30,13 +30,6 @@ type ParagraphChild struct {
 	Run  *Run       // i.e w:r
 }
 
-type Hyperlink struct {
-	XMLName  xml.Name `xml:"http://schemas.openxmlformats.org/wordprocessingml/2006/main hyperlink,omitempty"`
-	ID       string   `xml:"http://schemas.openxmlformats.org/officeDocument/2006/relationships id,attr"`
-	Run      *Run
-	Children []ParagraphChild
-}
-
 func (p Paragraph) MarshalXML(e *xml.Encoder, start xml.StartElement) (err error) {
 	start.Name.Local = "w:p"
 
@@ -134,6 +127,13 @@ loop:
 				}
 
 				p.Children = append(p.Children, ParagraphChild{Run: r})
+			case "hyperlink":
+				r := new(Hyperlink)
+				if err = d.DecodeElement(r, &elem); err != nil {
+					return err
+				}
+
+				p.Children = append(p.Children, ParagraphChild{Link: r})
 			case "pPr":
 				p.Property = &ParagraphProp{}
 				if err = d.DecodeElement(p.Property, &elem); err != nil {

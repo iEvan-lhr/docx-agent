@@ -2,6 +2,8 @@ package ctypes
 
 import (
 	"encoding/xml"
+	"github.com/iEvan-lhr/docx-agent/internal"
+	"github.com/iEvan-lhr/docx-agent/wml/stypes"
 )
 
 type Row struct {
@@ -12,7 +14,14 @@ type Row struct {
 	Property *RowProperty
 
 	// 3.1 Choice
-	Contents []TRCellContent
+	Contents     []TRCellContent
+	RsidRPr      *stypes.LongHexNum // Revision Identifier for Paragraph Glyph Formatting
+	RsidR        *stypes.LongHexNum // Revision Identifier for Paragraph
+	RsidDel      *stypes.LongHexNum // Revision Identifier for Paragraph Deletion
+	RsidP        *stypes.LongHexNum // Revision Identifier for Paragraph Properties
+	RsidRDefault *stypes.LongHexNum // Default Revision Identifier for Runs
+	ParaID       *stypes.LongHexNum //
+	TextId       *stypes.LongHexNum //
 }
 
 func DefaultRow() *Row {
@@ -26,6 +35,27 @@ func DefaultRow() *Row {
 func (r Row) MarshalXML(e *xml.Encoder, start xml.StartElement) (err error) {
 	start.Name.Local = "w:tr"
 
+	if r.RsidRPr != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:rsidRPr"}, Value: string(*r.RsidRPr)})
+	}
+	if r.RsidR != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:rsidR"}, Value: string(*r.RsidR)})
+	}
+	if r.ParaID != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w14:paraId"}, Value: string(*r.ParaID)})
+	}
+	if r.TextId != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w14:textId"}, Value: string(*r.TextId)})
+	}
+	if r.RsidDel != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:rsidDel"}, Value: string(*r.RsidDel)})
+	}
+	if r.RsidP != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:rsidP"}, Value: string(*r.RsidP)})
+	}
+	if r.RsidRDefault != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:rsidRDefault"}, Value: string(*r.RsidRDefault)})
+	}
 	err = e.EncodeToken(start)
 	if err != nil {
 		return err
@@ -56,6 +86,24 @@ func (r Row) MarshalXML(e *xml.Encoder, start xml.StartElement) (err error) {
 }
 
 func (r *Row) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+	for _, attr := range start.Attr {
+		switch attr.Name.Local {
+		case "rsidRPr":
+			r.RsidRPr = internal.ToPtr(stypes.LongHexNum(attr.Value))
+		case "rsidR":
+			r.RsidR = internal.ToPtr(stypes.LongHexNum(attr.Value))
+		case "rsidDel":
+			r.RsidDel = internal.ToPtr(stypes.LongHexNum(attr.Value))
+		case "rsidP":
+			r.RsidP = internal.ToPtr(stypes.LongHexNum(attr.Value))
+		case "rsidRDefault":
+			r.RsidRDefault = internal.ToPtr(stypes.LongHexNum(attr.Value))
+		case "paraId":
+			r.ParaID = internal.ToPtr(stypes.LongHexNum(attr.Value))
+		case "textId":
+			r.TextId = internal.ToPtr(stypes.LongHexNum(attr.Value))
+		}
+	}
 loop:
 	for {
 		currentToken, err := d.Token()

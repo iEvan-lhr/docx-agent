@@ -36,6 +36,8 @@ type Document struct {
 	Headers map[string]*Header // key is relationship ID
 	Footers map[string]*Footer // key is relationship ID
 
+	Attrs []xml.Attr // <--- 用于存储根元素的属性
+
 	// Non elements - helper fields
 	DocRels      Relationships // DocRels represents relationships specific to the document.
 	RID          int
@@ -52,8 +54,9 @@ func (doc *Document) IncRelationID() int {
 // MarshalXML implements the xml.Marshaler interface for the Document type.
 func (doc Document) MarshalXML(e *xml.Encoder, start xml.StartElement) (err error) {
 	start.Name.Local = "w:document"
+	start.Attr = doc.Attrs
 
-	start.Attr = append(start.Attr, docAttrs...)
+	//start.Attr = append(start.Attr, docAttrs...)
 
 	err = e.EncodeToken(start)
 	if err != nil {
@@ -77,7 +80,16 @@ func (doc Document) MarshalXML(e *xml.Encoder, start xml.StartElement) (err erro
 }
 
 func (d *Document) UnmarshalXML(decoder *xml.Decoder, start xml.StartElement) (err error) {
-
+	d.Attrs = make([]xml.Attr, len(start.Attr))
+	for i := range d.Attrs {
+		if start.Attr[i].Name.Local != "Ignorable" {
+			d.Attrs[i].Name.Local = start.Attr[i].Name.Space + ":" + start.Attr[i].Name.Local
+			d.Attrs[i].Value = start.Attr[i].Value
+		} else {
+			d.Attrs[i].Name.Local = "mc:" + start.Attr[i].Name.Local
+			d.Attrs[i].Value = start.Attr[i].Value
+		}
+	}
 	for {
 		currentToken, err := decoder.Token()
 		if err != nil {

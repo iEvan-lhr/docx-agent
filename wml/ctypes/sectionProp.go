@@ -18,6 +18,8 @@ type SectionProp struct {
 	TitlePg          *GenSingleStrVal[stypes.OnOff]         `xml:"titlePg,omitempty"`
 	TextDir          *GenSingleStrVal[stypes.TextDirection] `xml:"textDirection,omitempty"`
 	DocGrid          *DocGrid                               `xml:"docGrid,omitempty"`
+	PgBorders        *PgBorders                             `xml:"pgBorders,omitempty"`
+	Cols             *Cols                                  `xml:"cols,omitempty"`
 }
 
 func NewSectionProper() *SectionProp {
@@ -65,7 +67,16 @@ func (s SectionProp) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 			return err
 		}
 	}
-
+	if s.PgBorders != nil {
+		if err = s.PgBorders.MarshalXML(e, xml.StartElement{}); err != nil {
+			return err
+		}
+	}
+	if s.Cols != nil {
+		if err = s.Cols.MarshalXML(e, xml.StartElement{}); err != nil {
+			return err
+		}
+	}
 	if s.PageNum != nil {
 		if err = s.PageNum.MarshalXML(e, xml.StartElement{}); err != nil {
 			return err
@@ -177,7 +188,16 @@ func (s *SectionProp) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error
 				if err := d.DecodeElement(s.PageMargin, &elem); err != nil {
 					return err
 				}
-
+			case "pgBorders":
+				s.PgBorders = &PgBorders{}
+				if err := d.DecodeElement(s.PgBorders, &elem); err != nil {
+					return err
+				}
+			case "cols":
+				s.Cols = &Cols{}
+				if err := d.DecodeElement(s.Cols, &elem); err != nil {
+					return err
+				}
 			case "pgNumType":
 				s.PageNum = &PageNumbering{}
 				if err := d.DecodeElement(s.PageNum, &elem); err != nil {

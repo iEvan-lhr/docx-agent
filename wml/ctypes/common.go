@@ -43,7 +43,13 @@ func NewGenOptStrVal[T ~string](val T) *GenOptStrVal[T] {
 // And the String type does not have validation
 // dont use this if the element requires validation
 type CTString struct {
-	Val string `xml:"val,attr"`
+	Val         string  `xml:"val,attr"`
+	FirstRow    *string `xml:"firstRow,attr"`
+	LastRow     *string `xml:"lastRow,attr"`
+	FirstColumn *string `xml:"firstColumn,attr"`
+	LastColumn  *string `xml:"lastColumn,attr"`
+	NoHBand     *string `xml:"noHBand,attr"`
+	NoVBand     *string `xml:"noVBand,attr"`
 }
 
 func NewCTString(value string) *CTString {
@@ -55,10 +61,59 @@ func NewCTString(value string) *CTString {
 // MarshalXML implements the xml.Marshaler interface for the CTString type.
 // It encodes the instance into XML using the "w:ELEMENT_NAME" element with a "w:val" attribute.
 func (s CTString) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:val"}, Value: s.Val})
+	if &s.Val != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:val"}, Value: s.Val})
+	}
+	if s.FirstRow != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:firstRow"}, Value: *s.FirstRow})
+	}
+	if s.LastRow != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:lastRow"}, Value: *s.LastRow})
+	}
+	if s.FirstColumn != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:firstColumn"}, Value: *s.FirstColumn})
+	}
+	if s.LastColumn != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:lastColumn"}, Value: *s.LastColumn})
+	}
+	if s.NoHBand != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:noHBand"}, Value: *s.NoHBand})
+	}
+	if s.NoVBand != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:noVBand"}, Value: *s.NoVBand})
+	}
 	err := e.EncodeElement("", start)
 
 	return err
+}
+
+// UnmarshalXML implements the xml.Marshaler interface for the CTString type.
+// It encodes the instance into XML using the "w:ELEMENT_NAME" element with a "w:val" attribute.
+func (s *CTString) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	for _, attr := range start.Attr {
+		if attr.Name.Local == "val" {
+			s.Val = attr.Value
+		}
+		if attr.Name.Local == "firstRow" {
+			s.FirstRow = &attr.Value
+		}
+		if attr.Name.Local == "lastRow" {
+			s.LastRow = &attr.Value
+		}
+		if attr.Name.Local == "firstColumn" {
+			s.FirstColumn = &attr.Value
+		}
+		if attr.Name.Local == "lastColumn" {
+			s.LastColumn = &attr.Value
+		}
+		if attr.Name.Local == "noHBand" {
+			s.NoHBand = &attr.Value
+		}
+		if attr.Name.Local == "noVBand" {
+			s.NoVBand = &attr.Value
+		}
+	}
+	return d.Skip() // 空元素
 }
 
 type DecimalNum struct {
