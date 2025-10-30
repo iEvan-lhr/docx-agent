@@ -111,3 +111,30 @@ func (b *BookmarkStart) UnmarshalXML(d *xml.Decoder, start xml.StartElement) err
 	}
 	return d.Skip() // 空元素
 }
+
+type BookmarkEnd struct {
+	ID   string `xml:"id,attr"`
+	Name string `xml:"name,attr"`
+}
+
+func (bn *BookmarkEnd) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	start.Name.Local = "w:bookmarkEnd"
+	start.Attr = []xml.Attr{}
+
+	if bn.ID != "" {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:id"}, Value: bn.ID})
+	}
+	if err := e.EncodeToken(start); err != nil {
+		return err
+	}
+	return e.EncodeToken(xml.EndElement{Name: start.Name})
+}
+
+func (bn *BookmarkEnd) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	for _, attr := range start.Attr {
+		if attr.Name.Local == "id" {
+			bn.ID = attr.Value
+		}
+	}
+	return d.Skip() // 空元素
+}

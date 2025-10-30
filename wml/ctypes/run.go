@@ -2,6 +2,7 @@ package ctypes
 
 import (
 	"encoding/xml"
+	"fmt"
 	"github.com/iEvan-lhr/docx-agent/dml"
 	"github.com/iEvan-lhr/docx-agent/internal"
 	"github.com/iEvan-lhr/docx-agent/wml/stypes"
@@ -276,30 +277,8 @@ loop:
 				r.Children = append(r.Children, RunChild{
 					Pict: pictElem,
 				})
-			//case "AlternateContent": // <mc:AlternateContent>
-			//	ac := &AlternateContent{}
-			//	if err = d.DecodeElement(ac, &elem); err != nil {
-			//		return err
-			//	}
-			//var ac AlternateContent
-			//if err = d.DecodeElement(&ac, &elem); err != nil {
-			//	return err
-			//}
-			//// 扁平化选择：优先 Choice.drawing -> Choice.pict -> Fallback.drawing -> Fallback.pict
-			//switch {
-			//case ac.Choice != nil && ac.Choice.Drawing != nil:
-			//	r.Children = append(r.Children, RunChild{Drawing: ac.Choice.Drawing})
-			//case ac.Choice != nil && ac.Choice.Pict != nil:
-			//	r.Children = append(r.Children, RunChild{Pict: ac.Choice.Pict})
-			//case ac.Fallback != nil && ac.Fallback.Drawing != nil:
-			//	r.Children = append(r.Children, RunChild{Drawing: ac.Fallback.Drawing})
-			//case ac.Fallback != nil && ac.Fallback.Pict != nil:
-			//	r.Children = append(r.Children, RunChild{Pict: ac.Fallback.Pict})
-			//default:
-			//	// 如果想保留原样，可以扩展 RunChild 增加 AltContent 字段保存 ac
-			//	// r.Children = append(r.Children, RunChild{AlternateContent: &ac})
-			//}
 			default:
+				fmt.Println(elem.Name.Local)
 				if err = d.Skip(); err != nil {
 					return err
 				}

@@ -2,6 +2,7 @@ package ctypes
 
 import (
 	"encoding/xml"
+	"fmt"
 
 	"github.com/iEvan-lhr/docx-agent/internal"
 	"github.com/iEvan-lhr/docx-agent/wml/stypes"
@@ -22,7 +23,9 @@ type Paragraph struct {
 	Property *ParagraphProp
 
 	// 2. Choices (Slice of Child elements)
-	Children []ParagraphChild
+	Children      []ParagraphChild
+	BookmarkStart *BookmarkStart
+	BookmarkEnd   *BookmarkEnd
 }
 
 type ParagraphChild struct {
@@ -84,6 +87,18 @@ func (p Paragraph) MarshalXML(e *xml.Encoder, start xml.StartElement) (err error
 			}
 		}
 	}
+	if p.BookmarkStart != nil {
+		propsElement := xml.StartElement{Name: xml.Name{Local: "w:bookmarkStart"}}
+		if err = e.EncodeElement(p.BookmarkStart, propsElement); err != nil {
+			return err
+		}
+	}
+	if p.BookmarkEnd != nil {
+		propsElement := xml.StartElement{Name: xml.Name{Local: "w:bookmarkEnd"}}
+		if err = e.EncodeElement(p.BookmarkEnd, propsElement); err != nil {
+			return err
+		}
+	}
 
 	// Closing </w:p> element
 	return e.EncodeToken(start.End())
@@ -119,6 +134,7 @@ loop:
 
 		switch elem := currentToken.(type) {
 		case xml.StartElement:
+			fmt.Println(elem.Name.Local)
 			switch elem.Name.Local {
 			case "r":
 				r := NewRun()
@@ -139,11 +155,22 @@ loop:
 				if err = d.DecodeElement(p.Property, &elem); err != nil {
 					return err
 				}
+			case "bookmarkStart":
+				p.BookmarkStart = &BookmarkStart{}
+				if err = d.DecodeElement(p.BookmarkStart, &elem); err != nil {
+					return err
+				}
+			case "bookmarkEnd":
+				p.BookmarkEnd = &BookmarkEnd{}
+				if err = d.DecodeElement(p.BookmarkEnd, &elem); err != nil {
+					return err
+				}
 			default:
 				if err = d.Skip(); err != nil {
 					return err
 				}
 			}
+
 		case xml.EndElement:
 			break loop
 		}
