@@ -2,8 +2,6 @@ package ctypes
 
 import (
 	"encoding/xml"
-	"fmt"
-
 	"github.com/iEvan-lhr/docx-agent/internal"
 	"github.com/iEvan-lhr/docx-agent/wml/stypes"
 )
@@ -134,7 +132,7 @@ loop:
 
 		switch elem := currentToken.(type) {
 		case xml.StartElement:
-			fmt.Println(elem.Name.Local)
+			//fmt.Println(elem.Name.Local)
 			switch elem.Name.Local {
 			case "r":
 				r := NewRun()
