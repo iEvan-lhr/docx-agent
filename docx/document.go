@@ -82,13 +82,18 @@ func (doc Document) MarshalXML(e *xml.Encoder, start xml.StartElement) (err erro
 func (d *Document) UnmarshalXML(decoder *xml.Decoder, start xml.StartElement) (err error) {
 	d.Attrs = make([]xml.Attr, len(start.Attr))
 	for i := range d.Attrs {
-		if start.Attr[i].Name.Local != "Ignorable" {
-			d.Attrs[i].Name.Local = start.Attr[i].Name.Space + ":" + start.Attr[i].Name.Local
-			d.Attrs[i].Value = start.Attr[i].Value
+		if start.Attr[i].Name.Space != "" {
+			if start.Attr[i].Name.Local != "Ignorable" {
+				d.Attrs[i].Name.Local = start.Attr[i].Name.Space + ":" + start.Attr[i].Name.Local
+				d.Attrs[i].Value = start.Attr[i].Value
+			} else {
+				d.Attrs[i].Name.Local = "mc:" + start.Attr[i].Name.Local
+				d.Attrs[i].Value = start.Attr[i].Value
+			}
 		} else {
-			d.Attrs[i].Name.Local = "mc:" + start.Attr[i].Name.Local
-			d.Attrs[i].Value = start.Attr[i].Value
+			d.Attrs = append(d.Attrs, start.Attr[i])
 		}
+
 	}
 	for {
 		currentToken, err := decoder.Token()
