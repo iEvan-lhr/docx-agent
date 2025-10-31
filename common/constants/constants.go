@@ -90,12 +90,6 @@ const MediaPath = "word/media/"
 const ConentTypeFileIdx = "[Content_Types].xml"
 
 const (
-	// 在现有常量后添加
-	HeaderType = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/header"
-	FooterType = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer"
-)
-
-const (
 	XMLNS_O = "urn:schemas-microsoft-com:office:office"
 	XMLNS_V = "urn:schemas-microsoft-com:vml"
 )
