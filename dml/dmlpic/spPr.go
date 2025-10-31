@@ -3,6 +3,7 @@ package dmlpic
 import (
 	"encoding/xml"
 	"fmt"
+	"io"
 )
 
 const (
@@ -33,6 +34,7 @@ type PicShapeProp struct {
 	PresetGeometry *PresetGeometry `xml:"prstGeom,omitempty"`
 
 	//TODO: Remaining sequcence of elements
+	NoFill *NoFill `xml:"noFill,omitempty"`
 }
 
 type PicShapePropOption func(*PicShapeProp)
@@ -89,6 +91,40 @@ func (p PicShapeProp) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 			return fmt.Errorf("marshalling PresetGeometry: %w", err)
 		}
 	}
-
+	// 3. VVVV 新增序列化逻辑 VVVV
+	if p.NoFill != nil {
+		if err = p.NoFill.MarshalXML(e, xml.StartElement{}); err != nil {
+			return fmt.Errorf("marshalling NoFill: %w", err)
+		}
+	}
 	return e.EncodeToken(xml.EndElement{Name: start.Name})
+}
+
+type NoFill struct{}
+
+// MarshalXML 序列化 <a:noFill/>
+func (n NoFill) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	start.Name.Local = "a:noFill"
+	// 这是一个空元素，所以立即编码开始和结束
+	if err := e.EncodeToken(start); err != nil {
+		return err
+	}
+	return e.EncodeToken(xml.EndElement{Name: start.Name})
+}
+
+// UnmarshalXML 反序列化 <a:noFill/>
+func (n *NoFill) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	// 这是一个空元素，只需消耗掉 token 直到找到它的结束标签
+	for {
+		token, err := d.Token()
+		if err != nil {
+			if err == io.EOF {
+				return nil
+			} // io.EOF 也意味着结束
+			return err
+		}
+		if elem, ok := token.(xml.EndElement); ok && elem.Name == start.Name {
+			return nil
+		}
+	}
 }

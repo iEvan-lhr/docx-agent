@@ -71,6 +71,8 @@ func (b BlipFill) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		return err
 	}
 
+	// 3. Choice: FillModProperties
+
 	return e.EncodeToken(xml.EndElement{Name: start.Name})
 }
 

@@ -2,6 +2,7 @@ package dmlprops
 
 import (
 	"encoding/xml"
+	"io"
 
 	"github.com/iEvan-lhr/docx-agent/dml/dmlst"
 )
@@ -72,4 +73,63 @@ func (p PicLocks) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	}
 
 	return e.EncodeToken(xml.EndElement{Name: start.Name})
+}
+
+// UnmarshalXML 为 PicLocks 实现 xml.Unmarshaler
+func (p *PicLocks) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	// 1. 遍历并解析所有属性
+	for _, attr := range start.Attr {
+		var target *dmlst.OptBool
+		switch attr.Name.Local {
+		case "noGrp":
+			target = &p.DisallowShadowGrouping
+		case "noSelect":
+			target = &p.NoSelect
+		case "noRot":
+			target = &p.NoRot
+		case "noChangeAspect":
+			target = &p.NoChangeAspect
+		case "noMove":
+			target = &p.NoMove
+		case "noResize":
+			target = &p.NoResize
+		case "noEditPoints":
+			target = &p.NoEditPoints
+		case "noAdjustHandles":
+			target = &p.NoAdjustHandles
+		case "noChangeArrowheads":
+			target = &p.NoChangeArrowheads
+		case "noChangeShapeType":
+			target = &p.NoChangeShapeType
+		case "noCrop":
+			target = &p.NoCrop
+		default:
+			continue // 跳过不认识的属性
+		}
+
+		// 使用 dmlst.OptBool 的 UnmarshalXMLAttr 方法来解析布尔值
+		// 它应该能处理 "1", "true", "0", "false" 等情况
+		if target != nil {
+			// UnmarshalXMLAttr 需要 xml.Attr 类型
+			if err := target.UnmarshalXMLAttr(attr); err != nil {
+				// 可以选择记录或返回属性解析错误
+				// return fmt.Errorf("error parsing attribute %s: %w", attr.Name.Local, err)
+			}
+		}
+	}
+
+	// 2. <a:picLocks> 是空元素，消耗掉 token 直到找到结束标签
+	for {
+		token, err := d.Token()
+		if err != nil {
+			if err == io.EOF {
+				return nil
+			} // io.EOF 也意味着结束
+			return err
+		}
+		if elem, ok := token.(xml.EndElement); ok && elem.Name == start.Name {
+			return nil // 找到结束标签，成功返回
+		}
+		// 如果在结束标签前遇到其他 token (理论上不应该)，忽略它们
+	}
 }

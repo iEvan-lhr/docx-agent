@@ -93,9 +93,9 @@ func (wp WrapPolygon) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 
 	if wp.Edited != nil {
 		if *wp.Edited {
-			start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "edited"}, Value: "true"})
+			start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "edited"}, Value: "1"})
 		} else {
-			start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "edited"}, Value: "false"})
+			start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "edited"}, Value: "0"})
 		}
 	}
 

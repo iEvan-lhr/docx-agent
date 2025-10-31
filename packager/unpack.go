@@ -96,6 +96,10 @@ func Unpack(content *[]byte) (*docx.RootDoc, error) {
 	delete(fileIndex, docPath)
 	rd.Document = docObj
 
+	// 在加载 document 后，初始化 Headers 和 Footers map
+	rd.Document.Headers = make(map[string]*docx.Header)
+	rd.Document.Footers = make(map[string]*docx.Footer)
+
 	// Load Relationship details
 	docRelFile := fileIndex[*docRelURI]
 	docRelations, err := LoadRelationShips(*docRelURI, docRelFile)
@@ -108,10 +112,6 @@ func Unpack(content *[]byte) (*docx.RootDoc, error) {
 	wordDir := path.Dir(docPath)
 
 	rd.DocStyles = &ctypes.Styles{}
-
-	rd.Headers = make([]*ctypes.Header, 0)
-	rd.Footers = make([]*ctypes.Footer, 0)
-
 	rID := 0
 	for _, relation := range docRelations.Relationships {
 		rID += 1
@@ -132,38 +132,40 @@ func Unpack(content *[]byte) (*docx.RootDoc, error) {
 			delete(fileIndex, stylesPath)
 			rd.DocStyles = stylesObj
 		case constants.HeaderType:
-			hFileName := relation.Target
-			if hFileName == "" {
+			// 处理 Header
+			headerFileName := relation.Target
+			if headerFileName == "" {
 				continue
 			}
-			headerPath := path.Join(wordDir, hFileName)
-			headerFile, ok := fileIndex[headerPath]
-			if !ok {
-				return nil, fmt.Errorf("header file not found: %s", headerPath)
-			}
-			headerObj, err := docx.LoadHeaderXml(headerPath, headerFile)
+			headerPath := path.Join(wordDir, headerFileName)
+
+			// 加载 Header
+			headerFile := fileIndex[headerPath]
+			headerObj, err := docx.LoadHeaderXml(rd, headerPath, headerFile)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to load header %s: %v", headerPath, err)
 			}
+			headerObj.ID = relation.ID
+			rd.Document.Headers[relation.ID] = headerObj
 			delete(fileIndex, headerPath)
-			rd.Headers = append(rd.Headers, headerObj)
 
 		case constants.FooterType:
-			fFileName := relation.Target
-			if fFileName == "" {
+			// 处理 Footer
+			footerFileName := relation.Target
+			if footerFileName == "" {
 				continue
 			}
-			footerPath := path.Join(wordDir, fFileName)
-			footerFile, ok := fileIndex[footerPath]
-			if !ok {
-				return nil, fmt.Errorf("footer file not found: %s", footerPath)
-			}
-			footerObj, err := docx.LoadFooterXml(footerPath, footerFile)
+			footerPath := path.Join(wordDir, footerFileName)
+
+			// 加载 Footer
+			footerFile := fileIndex[footerPath]
+			footerObj, err := docx.LoadFooterXml(rd, footerPath, footerFile)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to load footer %s: %v", footerPath, err)
 			}
+			footerObj.ID = relation.ID
+			rd.Document.Footers[relation.ID] = footerObj
 			delete(fileIndex, footerPath)
-			rd.Footers = append(rd.Footers, footerObj)
 		}
 	}
 

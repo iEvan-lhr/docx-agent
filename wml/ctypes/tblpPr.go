@@ -30,6 +30,10 @@ type FloatPos struct {
 
 	// Absolute Vertical Distance From Anchor
 	AbsYDist *int `xml:"tblpY,attr,omitempty"`
+
+	VertAnchor *string `xml:"vertAnchor,attr,omitempty"`
+
+	HorzAnchor *string `xml:"horzAnchor,attr,omitempty"`
 }
 
 func (t FloatPos) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -64,6 +68,12 @@ func (t FloatPos) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	}
 	if t.AbsYDist != nil {
 		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:tblpY"}, Value: strconv.Itoa(*t.AbsYDist)})
+	}
+	if t.VertAnchor != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:vertAnchor"}, Value: *t.VertAnchor})
+	}
+	if t.HorzAnchor != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:horzAnchor"}, Value: *t.HorzAnchor})
 	}
 
 	return e.EncodeElement("", start)

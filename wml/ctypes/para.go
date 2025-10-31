@@ -2,7 +2,6 @@ package ctypes
 
 import (
 	"encoding/xml"
-
 	"github.com/iEvan-lhr/docx-agent/internal"
 	"github.com/iEvan-lhr/docx-agent/wml/stypes"
 )
@@ -16,24 +15,20 @@ type Paragraph struct {
 	RsidDel      *stypes.LongHexNum // Revision Identifier for Paragraph Deletion
 	RsidP        *stypes.LongHexNum // Revision Identifier for Paragraph Properties
 	RsidRDefault *stypes.LongHexNum // Default Revision Identifier for Runs
-
+	ParaID       *stypes.LongHexNum //
+	TextId       *stypes.LongHexNum //
 	// 1. Paragraph Properties
 	Property *ParagraphProp
 
 	// 2. Choices (Slice of Child elements)
-	Children []ParagraphChild
+	Children      []ParagraphChild
+	BookmarkStart *BookmarkStart
+	BookmarkEnd   *BookmarkEnd
 }
 
 type ParagraphChild struct {
 	Link *Hyperlink // w:hyperlink
 	Run  *Run       // i.e w:r
-}
-
-type Hyperlink struct {
-	XMLName  xml.Name `xml:"http://schemas.openxmlformats.org/wordprocessingml/2006/main hyperlink,omitempty"`
-	ID       string   `xml:"http://schemas.openxmlformats.org/officeDocument/2006/relationships id,attr"`
-	Run      *Run
-	Children []ParagraphChild
 }
 
 func (p Paragraph) MarshalXML(e *xml.Encoder, start xml.StartElement) (err error) {
@@ -42,7 +37,12 @@ func (p Paragraph) MarshalXML(e *xml.Encoder, start xml.StartElement) (err error
 	if p.RsidRPr != nil {
 		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:rsidRPr"}, Value: string(*p.RsidRPr)})
 	}
-
+	if p.ParaID != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w14:paraId"}, Value: string(*p.ParaID)})
+	}
+	if p.TextId != nil {
+		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w14:textId"}, Value: string(*p.TextId)})
+	}
 	if p.RsidR != nil {
 		start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "w:rsidR"}, Value: string(*p.RsidR)})
 	}
@@ -85,6 +85,18 @@ func (p Paragraph) MarshalXML(e *xml.Encoder, start xml.StartElement) (err error
 			}
 		}
 	}
+	if p.BookmarkStart != nil {
+		propsElement := xml.StartElement{Name: xml.Name{Local: "w:bookmarkStart"}}
+		if err = e.EncodeElement(p.BookmarkStart, propsElement); err != nil {
+			return err
+		}
+	}
+	if p.BookmarkEnd != nil {
+		propsElement := xml.StartElement{Name: xml.Name{Local: "w:bookmarkEnd"}}
+		if err = e.EncodeElement(p.BookmarkEnd, propsElement); err != nil {
+			return err
+		}
+	}
 
 	// Closing </w:p> element
 	return e.EncodeToken(start.End())
@@ -104,6 +116,10 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err er
 			p.RsidP = internal.ToPtr(stypes.LongHexNum(attr.Value))
 		case "rsidRDefault":
 			p.RsidRDefault = internal.ToPtr(stypes.LongHexNum(attr.Value))
+		case "paraId":
+			p.ParaID = internal.ToPtr(stypes.LongHexNum(attr.Value))
+		case "textId":
+			p.TextId = internal.ToPtr(stypes.LongHexNum(attr.Value))
 		}
 	}
 
@@ -116,6 +132,7 @@ loop:
 
 		switch elem := currentToken.(type) {
 		case xml.StartElement:
+			//fmt.Println(elem.Name.Local)
 			switch elem.Name.Local {
 			case "r":
 				r := NewRun()
@@ -124,9 +141,26 @@ loop:
 				}
 
 				p.Children = append(p.Children, ParagraphChild{Run: r})
+			case "hyperlink":
+				r := new(Hyperlink)
+				if err = d.DecodeElement(r, &elem); err != nil {
+					return err
+				}
+
+				p.Children = append(p.Children, ParagraphChild{Link: r})
 			case "pPr":
 				p.Property = &ParagraphProp{}
 				if err = d.DecodeElement(p.Property, &elem); err != nil {
+					return err
+				}
+			case "bookmarkStart":
+				p.BookmarkStart = &BookmarkStart{}
+				if err = d.DecodeElement(p.BookmarkStart, &elem); err != nil {
+					return err
+				}
+			case "bookmarkEnd":
+				p.BookmarkEnd = &BookmarkEnd{}
+				if err = d.DecodeElement(p.BookmarkEnd, &elem); err != nil {
 					return err
 				}
 			default:
@@ -134,6 +168,7 @@ loop:
 					return err
 				}
 			}
+
 		case xml.EndElement:
 			break loop
 		}

@@ -2,6 +2,8 @@ package docx
 
 import (
 	"encoding/xml"
+	"github.com/iEvan-lhr/docx-agent/internal"
+	"strconv"
 
 	"github.com/iEvan-lhr/docx-agent/wml/ctypes"
 	"github.com/iEvan-lhr/docx-agent/wml/stypes"
@@ -21,7 +23,7 @@ func (t *Table) unmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 
 func (t *Table) Width(v int, u stypes.TableWidth) *Table {
 	w := ctypes.TableWidth{
-		Width:     &v,
+		Width:     internal.ToPtr(strconv.Itoa(v)),
 		WidthType: &u,
 	}
 	t.ct.TableProp.Width = &w

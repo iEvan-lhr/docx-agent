@@ -3,6 +3,7 @@ package docx
 import (
 	"archive/zip"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -84,6 +85,24 @@ func (rd *RootDoc) writeToZip(zw *zip.Writer) error {
 		return err
 	}
 	snapshot[rd.DocStyles.RelativePath] = docStyleBytes
+
+	// Serialize headers
+	for _, header := range rd.Document.Headers {
+		headerBytes, err := marshal(header)
+		if err != nil {
+			return fmt.Errorf("failed to marshal header %s: %v", header.ID, err)
+		}
+		snapshot[header.RelativePath] = headerBytes
+	}
+
+	// Serialize footers
+	for _, footer := range rd.Document.Footers {
+		footerBytes, err := marshal(footer)
+		if err != nil {
+			return fmt.Errorf("failed to marshal footer %s: %v", footer.ID, err)
+		}
+		snapshot[footer.RelativePath] = footerBytes
+	}
 
 	// Persist numbering instances into numbering.xml if any
 	if rd.Numbering != nil {

@@ -2,6 +2,7 @@ package ctypes
 
 import (
 	"encoding/xml"
+	"fmt"
 	"github.com/iEvan-lhr/docx-agent/dml"
 	"github.com/iEvan-lhr/docx-agent/internal"
 	"github.com/iEvan-lhr/docx-agent/wml/stypes"
@@ -21,6 +22,14 @@ type Run struct {
 
 	// 2. Choice - Run Inner content
 	Children []RunChild
+
+	AlternateContent *AlternateContent
+
+	FldChar *FldChar
+
+	InStrText *InStrText
+
+	BookmarkStart *BookmarkStart
 }
 
 type RunChild struct {
@@ -111,7 +120,8 @@ type RunChild struct {
 	PTab *PTab `xml:"ptab,omitempty"`
 
 	//Position of Last Calculated Page Break
-	LastRenPgBrk *Empty `xml:"lastRenderedPageBreak,omitempty"`
+	LastRenPgBrk     *Empty            `xml:"lastRenderedPageBreak,omitempty"`
+	AlternateContent *AlternateContent `xml:"mc\\AlternateContent,omitempty"`
 }
 
 func NewRun() *Run {
@@ -144,6 +154,30 @@ func (r Run) MarshalXML(e *xml.Encoder, start xml.StartElement) (err error) {
 		}
 	}
 
+	if r.AlternateContent != nil {
+		propsElement := xml.StartElement{Name: xml.Name{Local: "mc:AlternateContent"}}
+		if err = e.EncodeElement(r.AlternateContent, propsElement); err != nil {
+			return err
+		}
+	}
+	if r.FldChar != nil {
+		propsElement := xml.StartElement{Name: xml.Name{Local: "w:fldChar"}}
+		if err = e.EncodeElement(r.FldChar, propsElement); err != nil {
+			return err
+		}
+	}
+	if r.InStrText != nil {
+		propsElement := xml.StartElement{Name: xml.Name{Local: "w:instrText"}}
+		if err = e.EncodeElement(r.InStrText, propsElement); err != nil {
+			return err
+		}
+	}
+	if r.BookmarkStart != nil {
+		propsElement := xml.StartElement{Name: xml.Name{Local: "w:bookmarkStart"}}
+		if err = e.EncodeElement(r.BookmarkStart, propsElement); err != nil {
+			return err
+		}
+	}
 	// 2. Remaining Child elemens
 	if err = r.MarshalChild(e); err != nil {
 		return err
@@ -187,6 +221,26 @@ loop:
 				if err = d.DecodeElement(r.Property, &elem); err != nil {
 					return err
 				}
+			case "AlternateContent": // <mc:AlternateContent>
+				r.AlternateContent = &AlternateContent{}
+				if err = d.DecodeElement(r.AlternateContent, &elem); err != nil {
+					return err
+				}
+			case "fldChar":
+				r.FldChar = &FldChar{}
+				if err = d.DecodeElement(r.FldChar, &elem); err != nil {
+					return err
+				}
+			case "bookmarkStart":
+				r.BookmarkStart = &BookmarkStart{}
+				if err = d.DecodeElement(r.BookmarkStart, &elem); err != nil {
+					return err
+				}
+			case "instrText":
+				r.InStrText = &InStrText{}
+				if err = d.DecodeElement(r.InStrText, &elem); err != nil {
+					return err
+				}
 			case "tab":
 				tabElem := &Empty{}
 				if err = d.DecodeElement(tabElem, &elem); err != nil {
@@ -224,6 +278,7 @@ loop:
 					Pict: pictElem,
 				})
 			default:
+				fmt.Println(elem.Name.Local)
 				if err = d.Skip(); err != nil {
 					return err
 				}

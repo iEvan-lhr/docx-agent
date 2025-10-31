@@ -73,3 +73,47 @@ func (s Spacing) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 
 	return e.EncodeElement("", start)
 }
+
+func (s *Spacing) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	for _, attr := range start.Attr {
+		if attr.Name.Local == "before" {
+			atoi, err := strconv.Atoi(attr.Value)
+			if err == nil {
+				u := uint64(atoi)
+				s.Before = &u
+			}
+		}
+		if attr.Name.Local == "after" {
+			atoi, err := strconv.Atoi(attr.Value)
+			if err == nil {
+				u := uint64(atoi)
+				s.After = &u
+			}
+		}
+		if attr.Name.Local == "beforeLines" {
+			atoi, err := strconv.Atoi(attr.Value)
+			if err == nil {
+				s.BeforeLines = &atoi
+			}
+		}
+		if attr.Name.Local == "beforeAutospacing" {
+			s2 := stypes.OnOff(attr.Value)
+			s.BeforeAutospacing = &s2
+		}
+		if attr.Name.Local == "afterAutospacing" {
+			s2 := stypes.OnOff(attr.Value)
+			s.AfterAutospacing = &s2
+		}
+		if attr.Name.Local == "line" {
+			atoi, err := strconv.Atoi(attr.Value)
+			if err == nil {
+				s.Line = &atoi
+			}
+		}
+		if attr.Name.Local == "lineRule" {
+			s2 := stypes.LineSpacingRule(attr.Value)
+			s.LineRule = &s2
+		}
+	}
+	return d.Skip() // 空元素
+}

@@ -41,7 +41,11 @@ const (
 	WMLNamespace    = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 	AltWMLNamespace = "http://purl.oclc.org/ooxml/wordprocessingml/main"
 
-	WMLDrawingNS = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+	WMLDrawingNS   = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+	WMLDrawingNS14 = "http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing"
+	W14NameSpace   = "http://schemas.microsoft.com/office/word/2010/wordml"
+	WPGNamespace   = "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+	WPSNamespace   = "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
 )
 
 const (
@@ -84,3 +88,14 @@ const (
 const MediaPath = "word/media/"
 
 const ConentTypeFileIdx = "[Content_Types].xml"
+
+const (
+	// 在现有常量后添加
+	HeaderType = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/header"
+	FooterType = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer"
+)
+
+const (
+	XMLNS_O = "urn:schemas-microsoft-com:office:office"
+	XMLNS_V = "urn:schemas-microsoft-com:vml"
+)
